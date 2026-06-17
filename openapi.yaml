@@ -1,0 +1,282 @@
+openapi: 3.0.1
+info:
+  title: Todo-Listen-Verwaltung
+  description: REST-API zur Verwaltung von Todo-Listen und Todo-Eintraegen.
+  contact:
+    email: DEINE_EMAIL_HIER_EINTRAGEN@example.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:5000
+    description: Lokaler Flask-Server
+tags:
+  - name: Listenverwaltung
+    description: Endpunkte fuer Todo-Listen und Todo-Eintraege
+paths:
+  /todo-list:
+    get:
+      tags:
+        - Listenverwaltung
+      summary: Alle Todo-Listen abrufen
+      operationId: getAllLists
+      responses:
+        "200":
+          description: Alle Todo-Listen wurden erfolgreich geladen.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TodoList"
+    post:
+      tags:
+        - Listenverwaltung
+      summary: Neue Todo-Liste erstellen
+      operationId: createList
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TodoListCreate"
+      responses:
+        "201":
+          description: Todo-Liste wurde erfolgreich erstellt.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodoList"
+        "400":
+          description: Ungueltiger Request-Body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /todo-list/{list_id}:
+    get:
+      tags:
+        - Listenverwaltung
+      summary: Alle Eintraege einer Todo-Liste abrufen
+      operationId: getEntriesFromList
+      parameters:
+        - name: list_id
+          in: path
+          description: UUID der Todo-Liste
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Eintraege der Todo-Liste wurden erfolgreich geladen.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TodoEntry"
+        "404":
+          description: Todo-Liste wurde nicht gefunden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Listenverwaltung
+      summary: Neuen Eintrag zu einer Todo-Liste hinzufuegen
+      operationId: createEntryInList
+      parameters:
+        - name: list_id
+          in: path
+          description: UUID der Todo-Liste
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TodoEntryCreate"
+      responses:
+        "201":
+          description: Todo-Eintrag wurde erfolgreich erstellt.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodoEntry"
+        "400":
+          description: Ungueltiger Request-Body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Todo-Liste wurde nicht gefunden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Listenverwaltung
+      summary: Todo-Liste loeschen
+      operationId: deleteList
+      parameters:
+        - name: list_id
+          in: path
+          description: UUID der Todo-Liste
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Todo-Liste wurde erfolgreich geloescht.
+        "404":
+          description: Todo-Liste wurde nicht gefunden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /todo-list/entry/{entry_id}:
+    patch:
+      tags:
+        - Listenverwaltung
+      summary: Bestehenden Todo-Eintrag aktualisieren
+      operationId: updateEntry
+      parameters:
+        - name: entry_id
+          in: path
+          description: UUID des Todo-Eintrags
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TodoEntryUpdate"
+      responses:
+        "200":
+          description: Todo-Eintrag wurde erfolgreich aktualisiert.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodoEntry"
+        "400":
+          description: Ungueltiger Request-Body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Todo-Eintrag wurde nicht gefunden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Listenverwaltung
+      summary: Einzelnen Todo-Eintrag loeschen
+      operationId: deleteEntry
+      parameters:
+        - name: entry_id
+          in: path
+          description: UUID des Todo-Eintrags
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Todo-Eintrag wurde erfolgreich geloescht.
+        "404":
+          description: Todo-Eintrag wurde nicht gefunden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    TodoList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 1318d3d1-d979-47e1-a225-dab1751dbe75
+        name:
+          type: string
+          example: Einkaufsliste
+      required:
+        - id
+        - name
+    TodoListCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Einkaufsliste
+      required:
+        - name
+    TodoEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 5ef64d6d-02df-4381-9303-2a7df86e1d41
+        name:
+          type: string
+          example: Milch kaufen
+        description:
+          type: string
+          example: 1 Liter Vollmilch
+        list_id:
+          type: string
+          format: uuid
+          example: 1318d3d1-d979-47e1-a225-dab1751dbe75
+      required:
+        - id
+        - name
+        - list_id
+    TodoEntryCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Milch kaufen
+        description:
+          type: string
+          example: 1 Liter Vollmilch
+      required:
+        - name
+    TodoEntryUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Milch kaufen
+        description:
+          type: string
+          example: 2 Liter Vollmilch
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Not Found
+        message:
+          type: string
+          example: Todo-Liste wurde nicht gefunden.
+      required:
+        - error
+        - message
